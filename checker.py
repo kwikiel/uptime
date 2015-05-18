@@ -7,6 +7,7 @@ import requests
 from datetime import timedelta
 import os
 
+
 class FlaskCelery(Celery):
     def __init__(self, *args, **kwargs):
         super(FlaskCelery, self).__init__(*args, **kwargs)
@@ -39,9 +40,9 @@ class FlaskCelery(Celery):
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sites.db'
 app.config.update(
-    CELERY_BROKER_URL=os.environ['REDIS_URL'],
-    CELERY_RESULT_BACKEND=os.environ['REDIS_URL'],
-    CELERY_TIMEZONE = 'UTC',
+    CELERY_BROKER_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+    CELERY_RESULT_BACKEND=os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+    CELERY_TIMEZONE='UTC',
     CELERYBEAT_SCHEDULE={
         'update-every-30-seconds': {
             'task': 'checker.update_sites',
@@ -84,12 +85,13 @@ def update_sites():
 def index():
     return "Hello -> go to /add"
 
+
 @app.route('/add/<path:site>')
 def add_site(site):
     new_site = Site(address=site)
     db.session.add(new_site)
     db.session.commit()
-    return "Added {}"format(site)
+    return "Added {}".format(site)
 
 
 @app.route('/sites')
