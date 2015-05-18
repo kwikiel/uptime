@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+{% for site in sites %}
+<div  class="col s12 card-panel {% if site.status == "down" -%}
+    red
+    {%- else -%}
+    green
+    {%- endif %}">
+    <p class="flow-text">{{ site.name }}</p>
+</div>
+{% endfor %}
+{% endblock %}
