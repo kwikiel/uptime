@@ -9,5 +9,7 @@ Jinja2==2.7.3
 kombu==3.0.26
 MarkupSafe==0.23
 pytz==2015.4
+redis==2.10.3
+requests==2.7.0
 SQLAlchemy==1.0.4
 Werkzeug==0.10.4
