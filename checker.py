@@ -82,7 +82,14 @@ def update_sites():
 
 @app.route('/')
 def index():
-    return "Hello world"
+    return "Hello -> go to /add"
+
+@app.route('/add/<path:site>')
+def add_site(site):
+    new_site = Site(address=site)
+    db.session.add(new_site)
+    db.session.commit()
+    return "Added {}"format(site)
 
 
 @app.route('/sites')
