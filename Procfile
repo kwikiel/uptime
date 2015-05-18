@@ -1,3 +1,3 @@
 web: python checker.py
-celery: celery -A checker.celery worker
-celerybeat: celery -A checker.celery beat
+worker: celery -A checker.celery worker
+worker1: celery -A checker.celery beat
