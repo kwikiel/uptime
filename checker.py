@@ -62,9 +62,6 @@ def add_site(site):
 @app.route('/sites')
 def checks():
     sites = Site.query.all()
-    #sites = [{"name":"www.wp.pl", "status": "down"},
-    #        {"name":"www.google.pl", "status": "up"}
-    #        ]
     return render_template("sites.html", sites=sites)
 
 if __name__ == '__main__':
