@@ -2,57 +2,21 @@ import flask
 from flask import Flask
 from flask import render_template
 from flask.ext.sqlalchemy import SQLAlchemy
-from celery import Celery
+#from celery import Celery
 import requests
 from datetime import timedelta
 import os
+import subprocess
+from flask import redirect, url_for
+#iNSECURE and bad
+#Also bad because importing all things
 
 
-class FlaskCelery(Celery):
-    def __init__(self, *args, **kwargs):
-        super(FlaskCelery, self).__init__(*args, **kwargs)
-        self.patch_task()
-
-        if 'app' in kwargs:
-            self.init_app(kwargs['app'])
-
-    def patch_task(self):
-        TaskBase = self.Task
-        _celery = self
-
-        class ContextTask(TaskBase):
-            abstract = True
-
-            def __call__(self, *args, **kwargs):
-                if flask.has_app_context():
-                    return TaskBase.__call__(self, *args, **kwargs)
-                else:
-                    with _celery.app.app_context():
-                        return TaskBase.__call__(self, *args, **kwargs)
-
-        self.Task = ContextTask
-
-    def init_app(self, app):
-        self.app = app
-        self.config_from_object(app.config)
 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sites.db'
-app.config.update(
-    CELERY_BROKER_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379'),
-    CELERY_RESULT_BACKEND=os.environ.get('REDIS_URL', 'redis://localhost:6379'),
-    CELERY_TIMEZONE='UTC',
-    CELERYBEAT_SCHEDULE={
-        'update-every-30-seconds': {
-            'task': 'checker.update_sites',
-            'schedule': timedelta(seconds=30),
-        },
-    },
-)
-
 db = SQLAlchemy(app)
-celery = FlaskCelery(app=app, broker=app.config['CELERY_BROKER_URL'])
 
 
 class Site(db.Model):
@@ -64,7 +28,7 @@ class Site(db.Model):
         return '<Address: {0.address}, Status: {0.status}>'.format(self)
 
 
-@celery.task
+@app.route('/')
 def update_sites():
     print 'Updating everything'
     for site in Site.query.all():
@@ -79,9 +43,10 @@ def update_sites():
             print 'It is died'
 
     db.session.commit()
+    return redirect(url_for('checks'))
 
 
-@app.route('/')
+@app.route('/hello')
 def index():
     return "Hello -> go to /add"
 
@@ -104,4 +69,4 @@ def checks():
 
 if __name__ == '__main__':
     db.create_all()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
